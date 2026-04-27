@@ -56,13 +56,18 @@ LN_HALF  = math.log(0.5)
 # ======================================================================
 # LOGGING
 # ======================================================================
+file_handler = logging.FileHandler(ERROR_LOG, mode="w")
+file_handler.setLevel(logging.ERROR)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.INFO, 
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.FileHandler(ERROR_LOG, mode="w"), logging.StreamHandler()],
+    handlers=[file_handler, stream_handler],
 )
 log = logging.getLogger("finnhub_stream")
-
 
 # ======================================================================
 # STATE  --  O(1) per ticker, no growing lists

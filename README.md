@@ -6,25 +6,39 @@ memory efficiency.
 
 ---
 
-## Team Details
+## Team Members
 
-| Field        | Value                       |
-| ------------ | --------------------------- |
-| Team Name    | `<TEAM_NAME>`               |
-| Member 1     | `<NAME>` — `<STUDENT_ID>`   |
-| Member 2     | `<NAME>` — `<STUDENT_ID>`   |
-| Member 3     | `<NAME>` — `<STUDENT_ID>`   |
-| Member 4     | `<NAME>` — `<STUDENT_ID>`   |
-| Submission   | `<YYYY-MM-DD>`              |
+| Member          | Student ID  |
+| --------------- | ----------- |
+| Daniel Pilant   | 214631426   |
+| Elyasaf Okanin  | 319028064   |
 
 ---
 
-## Files
+## Repository Layout
+
+```
+Week4/
+├── backend/
+│   ├── finnhub_stream.py            # Online stream processor (a.k.a. process_stream)
+│   ├── offline_validation.py        # Batch validator
+│   ├── bridge_server.py             # FastAPI WebSocket bridge for the dashboard
+│   ├── requirements_bridge.txt      # Python deps for the bridge
+│   ├── console.finnhub.txt          # Raw JSON ticks + system timestamp
+│   ├── console.process_stream.txt   # Processed CSV row every 100 msgs per ticker
+│   └── stream_errors.log            # Malformed-message / WS client errors
+└── frontend/
+    ├── app/                         # Next.js 14 App-Router pages
+    ├── components/                  # Recharts dashboard widgets
+    ├── hooks/                       # WebSocket subscriber hook
+    ├── lib/                         # Shared client utilities
+    └── package.json                 # Node deps (next, react, recharts, tailwind)
+```
+
+Output files produced by the backend at runtime:
 
 | File                          | Purpose                                                 |
 | ----------------------------- | ------------------------------------------------------- |
-| `finnhub_stream.py`           | Online stream processor (this is also `process_stream`) |
-| `offline_validation.py`       | Batch validator that re-derives stats from raw log      |
 | `console.finnhub.txt`         | Raw JSON ticks + system timestamp (one per line)        |
 | `console.process_stream.txt`  | Processed CSV row every 100 messages per ticker         |
 | `console.latency.txt`         | Online latency + peak-memory metrics                    |
@@ -33,33 +47,153 @@ memory efficiency.
 
 ---
 
-## Setup
+## Prerequisites
+
+| Tool      | Tested version | Purpose                                  |
+| --------- | -------------- | ---------------------------------------- |
+| Git       | any modern     | Clone the repo                           |
+| Python    | 3.10+          | Backend stream processor + bridge        |
+| Node.js   | 18.17+ / 20+   | Frontend dashboard (Next.js 14)          |
+| npm       | 9+             | Frontend package manager                 |
+| Finnhub   | Free tier OK   | API key from https://finnhub.io          |
+
+---
+
+## 1. Clone the Repository
 
 ```bash
-pip install websocket-client
+git clone https://github.com/DanielPilant/Week4.git
+cd Week4
 ```
 
-Open `finnhub_stream.py` and paste your key into the `API_KEY` constant at the top:
+---
+
+## 2. Backend — Stream Processor
+
+### 2.1 Install Python dependencies
+
+```bash
+cd backend
+python -m venv .venv
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+# Windows (Git Bash) / macOS / Linux
+source .venv/Scripts/activate
+
+pip install websocket-client
+pip install -r requirements_bridge.txt
+```
+
+### 2.2 Add your Finnhub API key
+
+Open [backend/finnhub_stream.py](backend/finnhub_stream.py) and set the `API_KEY`
+constant near the top of the file:
 
 ```python
 API_KEY = "ck_xxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-Tickers (10): AAPL, MSFT, GOOGL, AMZN, META, NVDA, TSLA, QQQ, SPY, VOO.
+Tickers subscribed (10): `AAPL`, `MSFT`, `GOOGL`, `AMZN`, `META`, `NVDA`,
+`TSLA`, `QQQ`, `SPY`, `VOO`.
+
+### 2.3 Run the online processor
+
+From inside the `backend/` folder:
+
+```bash
+python finnhub_stream.py
+```
+
+This runs for 1 hour and continuously writes:
+
+* `console.finnhub.txt` — raw JSON ticks
+* `console.process_stream.txt` — processed CSV rows (one block per 100 msgs/ticker)
+* `console.latency.txt` — latency + peak-memory metrics (on shutdown)
+* `stream_errors.log` — any errors
+
+### 2.4 Run the offline validator
+
+After (or in parallel with) the online run, validate the output:
+
+```bash
+python offline_validation.py
+```
+
+This re-derives EMA / variance / min / max from `console.finnhub.txt` and writes
+the comparison to `console.comparison.txt`.
 
 ---
 
-## Execution
+## 3. Bridge Server (optional — needed only for the live dashboard)
+
+The bridge tails `console.process_stream.txt` and broadcasts each parsed block
+over a WebSocket so the Next.js frontend can render live charts.
+
+In a **second terminal** (with the venv activated, from `backend/`):
 
 ```bash
-# 1) Run the online processor for 1 hour (writes raw + processed logs)
-python finnhub_stream.py
-# (equivalent rename if your assignment requires it)
-python process_stream.py
-
-# 2) Validate the online output against a batch recomputation
-python offline_validation.py
+uvicorn bridge_server:app --host 127.0.0.1 --port 8765 --reload
 ```
+
+Health check: open http://127.0.0.1:8765/health — you should see
+`{"status":"ok","clients":0,"tickers":[...]}`.
+
+---
+
+## 4. Frontend — Next.js Dashboard (optional)
+
+In a **third terminal**:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:3000 in your browser. The dashboard connects to the
+bridge at `ws://127.0.0.1:8765/ws` and renders live EMA / variance / price
+charts for each ticker.
+
+For a production build:
+
+```bash
+npm run build
+npm start
+```
+
+---
+
+## 5. End-to-End Run (TL;DR)
+
+```bash
+# Terminal 1 — stream processor
+cd backend && source .venv/Scripts/activate
+python finnhub_stream.py
+
+# Terminal 2 — bridge (only if using the dashboard)
+cd backend && source .venv/Scripts/activate
+uvicorn bridge_server:app --host 127.0.0.1 --port 8765 --reload
+
+# Terminal 3 — dashboard (only if using the dashboard)
+cd frontend
+npm run dev
+
+# After the 1-hour run finishes, in any terminal:
+cd backend && python offline_validation.py
+```
+
+---
+
+## Troubleshooting
+
+* **`websocket-client` not found** — make sure the venv is active (`which python`
+  should point inside `backend/.venv/`).
+* **Frontend shows no data** — confirm `bridge_server` is running and that
+  `console.process_stream.txt` is being appended to. The bridge polls the file
+  every 150 ms.
+* **`401 Unauthorized` on the WS** — your Finnhub API key is missing or invalid.
+* **Port already in use** — change `8765` (bridge) or `3000` (frontend) and
+  update the matching value in [frontend/lib/](frontend/lib/).
 
 ---
 
