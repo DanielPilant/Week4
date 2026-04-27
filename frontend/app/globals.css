@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  background-color: #0a0e14;
+  color: #d3d8e0;
+  font-feature-settings: "tnum", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Recharts tooltip override for dark theme */
+.recharts-default-tooltip {
+  background-color: #0f1419 !important;
+  border: 1px solid #1c2530 !important;
+  border-radius: 6px !important;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace !important;
+}
+.recharts-tooltip-label {
+  color: #5c6773 !important;
+  font-size: 11px !important;
+}
+.recharts-tooltip-item {
+  color: #d3d8e0 !important;
+}

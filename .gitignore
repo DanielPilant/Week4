@@ -1,0 +1,35 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+.env
+
+# --- Node / Next.js ---
+node_modules/
+.next/
+out/
+build/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# --- Stream output (regenerated every run) ---
+console.finnhub.txt
+console.process_stream.txt
+console.latency.txt
+stream_errors.log
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- TypeScript build info ---
+*.tsbuildinfo
+next-env.d.ts
