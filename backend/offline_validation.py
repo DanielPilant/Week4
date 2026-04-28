@@ -215,7 +215,7 @@ def build_report(batch, online, online_metrics, offline_runtime, offline_peak):
         sum_d_var50 += d_var50
         compared += 1
         out.append(
-            f"{ticker:<6}  {b['count']:>7d}  {o['count10']:>7d}  "
+            f"{ticker:<6}  {b['count']:>7d}  {int(o['count10']):>7d}  "
             f"{b['ema10']:11.4f}  {o['ema10']:11.4f}  {d_ema10:11.4f}  "
             f"{b['ema50']:11.4f}  {o['ema50']:11.4f}  {d_ema50:11.4f}  "
             f"{b['var']:11.4f}  {o['var10']:11.4f}  {d_var10:11.4f}  "
