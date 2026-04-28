@@ -4,6 +4,8 @@ OLTP-style online stream processing of Finnhub trade ticks for 10 Technology / E
 tickers, with an offline batch-validation pass to prove correctness, latency, and
 memory efficiency.
 
+![Live Dashboard Preview](frontend/assets/screenshot.png)
+
 ---
 
 ## Team Details
