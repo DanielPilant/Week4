@@ -6,12 +6,14 @@ memory efficiency.
 
 ---
 
-## Team Members
+## Team Details
 
-| Member         | Student ID |
-| -------------- | ---------- |
-| Daniel Pilant  | 214631426  |
-| Elyasaf Okanin | 319028064  |
+| Field         | Value                      |
+| ------------- | -------------------------- |
+| **Team Name** | DXM                        |
+| Member 1      | Daniel Pilant — 214631426  |
+| Member 2      | Elyasaf Okanin — 319028064 |
+| **Date**      | 28-04-2026                 |
 
 ---
 
